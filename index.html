@@ -4,11 +4,648 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>RapidLube Mobile Oil Change</title>
+  <!-- Tailwind via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <style>
+    :root{
+      --brand:#0ea5e9; /* sky-500 */
+      --brand-dark:#0284c7;
+      --ink:#0b1220;
+      --paper:#0b1220; /* deep background */
+      --soft:#0f172a;
+      --accent:#22d3ee; /* cyan-400 */
+      --success:#22c55e;
+      --warning:#f59e0b;
+    }
+    html,body{height:100%;}
+    body{font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji"; background:linear-gradient(180deg,#0b1220 0%, #0a1224 40%, #0a1428 100%); color:#e5f2ff;}
+    /* Soft glow cards */
+    .glass {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 10px 30px rgba(2, 132, 199, 0.15), inset 0 1px 0 rgba(255,255,255,0.06);
+      backdrop-filter: blur(8px);
+    }
+    .btn {
+      transition: transform .15s ease, box-shadow .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
+    }
+    .btn:active{ transform: translateY(1px) scale(0.99); }
+    .ring-focus:focus{ outline: none; box-shadow: 0 0 0 4px rgba(14,165,233,.25); }
+    /* Hero waves */
+    .wave {
+      position:absolute; inset:0; pointer-events:none; overflow:hidden;
+    }
+    .wave svg { position:absolute; width:140%; min-width:1200px; left:-20%; bottom:-2rem; opacity:.25; }
+    /* Badges */
+    .badge {
+      background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.05));
+      border:1px solid rgba(255,255,255,.2);
+    }
+    /* Step icons */
+    .icon-circle {
+      background: radial-gradient(120% 120% at 30% 30%, rgba(34,211,238,.25), rgba(14,165,233,.1) 40%, rgba(14,165,233,.04) 100%);
+      border:1px solid rgba(255,255,255,.08);
+    }
+    /* Mobile sheet */
+    .sheet {
+      transition: transform .35s cubic-bezier(.22,.9,.31,1), opacity .2s ease;
+    }
+    /* Toast */
+    .toast-enter{ animation: toast .3s ease both; }
+    @keyframes toast { from{ transform: translateY(8px); opacity:0 } to{ transform: translateY(0); opacity:1 } }
+    /* Prevent image drag ghost on SVGs */
+    svg{ user-select:none; }
+  </style>
 </head>
 <body class="antialiased">
-  <!-- your full code goes here (everything you pasted) -->
-</body>
+  <!-- Header -->
+  <header class="sticky top-0 z-40 bg-[#0b1220]/70 backdrop-blur-xl border-b border-white/10">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <!-- Simple oil drop logo (SVG) -->
+        <div class="h-10 w-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-sky-500 to-cyan-400 shadow-lg shadow-sky-900/40">
+          <svg viewBox="0 0 24 24" class="h-6 w-6 text-white">
+            <path fill="currentColor" d="M12 2s5 6.01 5 9.5A5 5 0 1 1 7 11.5C7 8.01 12 2 12 2zm0 6.25c-1.657 0-3 1.57-3 3.25s1.343 3.25 3 3.25 3-1.57 3-3.25-1.343-3.25-3-3.25z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="text-xl font-extrabold tracking-tight">RapidLube</div>
+          <div class="text-sm text-white/60 -mt-0.5">Mobile Oil Change • We come to you</div>
+        </div>
+      </div>
+      <nav class="hidden md:flex items-center gap-6 text-sm">
+        <a href="#services" class="text-white/80 hover:text-white">Services</a>
+        <a href="#pricing" class="text-white/80 hover:text-white">Pricing</a>
+        <a href="#how" class="text-white/80 hover:text-white">How it works</a>
+        <a href="#reviews" class="text-white/80 hover:text-white">Reviews</a>
+        <a href="#faq" class="text-white/80 hover:text-white">FAQ</a>
+      </nav>
+      <div class="hidden md:flex items-center gap-3">
+        <button id="btnCall" class="btn ring-focus px-4 py-2 rounded-lg border border-white/15 text-white/90 hover:text-white hover:border-white/30">Call: (555) 012-3456</button>
+        <button id="btnBook" class="btn ring-focus px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-600 text-white shadow-lg shadow-sky-900/30">Book now</button>
+      </div>
+      <button id="btnMobile" class="md:hidden btn ring-focus px-3 py-2 rounded-lg border border-white/15 text-white/90">Menu</button>
+    </div>
+  </header>
+
+  <!-- Mobile sheet menu -->
+  <div id="mobileMenu" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/50"></div>
+    <div class="sheet absolute bottom-0 left-0 right-0 bg-[#0d1426] border-t border-white/10 rounded-t-2xl p-6 translate-y-full">
+      <div class="flex items-center justify-between">
+        <div class="text-lg font-semibold">Menu</div>
+        <button id="btnCloseSheet" class="btn px-3 py-2 rounded-lg border border-white/15">Close</button>
+      </div>
+      <div class="mt-4 grid gap-3 text-base">
+        <a href="#services" class="glass rounded-xl px-4 py-3 hover:border-white/30">Services</a>
+        <a href="#pricing" class="glass rounded-xl px-4 py-3 hover:border-white/30">Pricing</a>
+        <a href="#how" class="glass rounded-xl px-4 py-3 hover:border-white/30">How it works</a>
+        <a href="#reviews" class="glass rounded-xl px-4 py-3 hover:border-white/30">Reviews</a>
+        <a href="#faq" class="glass rounded-xl px-4 py-3 hover:border-white/30">FAQ</a>
+        <button id="btnBookMobile" class="btn mt-1 rounded-xl px-4 py-3 bg-sky-500 hover:bg-sky-600 text-left">Book now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-16 md:pt-24 pb-16">
+      <div class="grid md:grid-cols-2 gap-10 items-center">
+        <div>
+          <div class="inline-flex items-center gap-2 badge text-xs text-white/90 px-3 py-1.5 rounded-full">
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+            Same-day appointments available
+          </div>
+          <h1 class="mt-4 text-4xl sm:text-5xl font-extrabold leading-tight">
+            Mobile Oil Changes
+            <span class="bg-gradient-to-r from-sky-400 via-cyan-300 to-emerald-300 bg-clip-text text-transparent">wherever you are</span>
+          </h1>
+          <p class="mt-4 text-white/70 text-lg">
+            We come to your home or office with everything needed. Fast, professional, and mess-free service that fits your schedule.
+          </p>
+          <div class="mt-6 flex flex-col sm:flex-row gap-3">
+            <button id="ctaBook" class="btn ring-focus px-5 py-3 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-semibold shadow-lg shadow-sky-900/30">
+              Book your service
+            </button>
+            <button id="ctaQuote" class="btn ring-focus px-5 py-3 rounded-xl border border-white/15 hover:border-white/30 text-white/90">
+              Get instant quote
+            </button>
+          </div>
+          <div class="mt-6 flex items-center gap-5 text-sm text-white/70">
+            <div class="flex items-center gap-2">
+              <span class="h-2 w-2 rounded-full bg-emerald-400"></span> ASE-Certified Techs
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="h-2 w-2 rounded-full bg-emerald-400"></span> Fully Insured
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="h-2 w-2 rounded-full bg-emerald-400"></span> Eco Disposal
+            </div>
+          </div>
+        </div>
+        <!-- Visual card -->
+        <div class="relative">
+          <div class="glass rounded-2xl p-6 md:p-7">
+            <div class="flex items-center gap-4">
+              <div class="h-12 w-12 rounded-xl flex items-center justify-center icon-circle">
+                <svg viewBox="0 0 24 24" class="h-6 w-6 text-cyan-300">
+                  <path fill="currentColor" d="M19 7h-1V6a4 4 0 0 0-8 0v1H6c-1.103 0-2 .897-2 2v8a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V9c0-1.103-.897-2-2-2zM12 6a2 2 0 0 1 4 0v1h-4V6zM6 9h12l.002 8a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9z"/>
+                </svg>
+              </div>
+              <div>
+                <div class="font-semibold">At‑your‑door Service</div>
+                <div class="text-white/60 text-sm -mt-0.5">No waiting rooms. We come to you.</div>
+              </div>
+            </div>
+            <div class="mt-6 grid grid-cols-3 gap-3">
+              <div class="glass rounded-xl p-4 text-center">
+                <div class="text-2xl font-extrabold text-cyan-300">30–45m</div>
+                <div class="text-xs text-white/60 mt-1">Typical time</div>
+              </div>
+              <div class="glass rounded-xl p-4 text-center">
+                <div class="text-2xl font-extrabold text-cyan-300">From $79</div>
+                <div class="text-xs text-white/60 mt-1">All-inclusive</div>
+              </div>
+              <div class="glass rounded-xl p-4 text-center">
+                <div class="text-2xl font-extrabold text-cyan-300">7am–7pm</div>
+                <div class="text-xs text-white/60 mt-1">Mon–Sat</div>
+              </div>
+            </div>
+            <div class="mt-6">
+              <div class="relative">
+                <div class="absolute -inset-1 rounded-2xl bg-gradient-to-br from-sky-500/20 to-cyan-400/10 blur-xl"></div>
+                <div class="relative rounded-2xl p-4 bg-[#0d162a] border border-white/10">
+                  <div class="flex items-center justify-between">
+                    <div class="text-white/80 text-sm">Next available</div>
+                    <div class="text-sm font-semibold text-emerald-300">Today · 2:30 PM</div>
+                  </div>
+                  <button id="quickBook" class="btn ring-focus mt-3 w-full rounded-lg px-4 py-2.5 bg-gradient-to-r from-sky-500 to-cyan-500 text-white hover:from-sky-600 hover:to-cyan-600">Book this slot</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Decorative SVG -->
+          <div class="wave" aria-hidden="true">
+            <svg viewBox="0 0 1440 320">
+              <path fill="url(#grad1)" d="M0,160L60,165.3C120,171,240,181,360,170.7C480,160,600,128,720,133.3C840,139,960,181,1080,176C1200,171,1320,117,1380,90.7L1440,64L1440,320L0,320Z"/>
+              <defs>
+                <linearGradient id="grad1" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#0ea5e9" stop-opacity=".25"/>
+                  <stop offset="100%" stop-color="#22d3ee" stop-opacity=".25"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trust bar -->
+  <section class="py-8 border-t border-white/10">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-wrap items-center justify-center gap-6 text-white/60 text-sm">
+      <div class="flex items-center gap-2"><span class="text-cyan-300">★</span> 4.9/5 rating</div>
+      <div class="h-3 w-px bg-white/10"></div>
+      <div class="flex items-center gap-2">Over 2,000 vehicles serviced</div>
+      <div class="h-3 w-px bg-white/10"></div>
+      <div class="flex items-center gap-2">Service warranty included</div>
+    </div>
+  </section>
+
+  <!-- Services -->
+  <section id="services" class="py-16">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <div class="flex items-end justify-between gap-6">
+        <h2 class="text-3xl sm:text-4xl font-extrabold">Services</h2>
+        <button id="btnCompare" class="btn ring-focus px-4 py-2 rounded-lg border border-white/15 hover:border-white/30 text-white/80">Compare packages</button>
+      </div>
+
+      <div class="mt-8 grid md:grid-cols-3 gap-6">
+        <!-- Basic -->
+        <div class="glass rounded-2xl p-6 flex flex-col">
+          <div class="flex items-center gap-3">
+            <div class="h-11 w-11 rounded-xl icon-circle flex items-center justify-center">
+              <svg viewBox="0 0 24 24" class="h-6 w-6 text-cyan-300"><path fill="currentColor" d="M20 6h-2.586l-2-2H8.586l-2 2H4a2 2 0 0 0-2 2v9a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V8a2 2 0 0 0-2-2zM5 10h14v7a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-7z"/></svg>
+            </div>
+            <div>
+              <div class="font-semibold">Basic Oil Change</div>
+              <div class="text-white/60 text-sm -mt-0.5">Conventional/Synthetic blend</div>
+            </div>
+          </div>
+          <ul class="mt-4 text-white/70 text-sm space-y-2">
+            <li>• Premium oil and filter</li>
+            <li>• Fluid top-up</li>
+            <li>• 15-point inspection</li>
+          </ul>
+          <div class="mt-5 flex items-center justify-between">
+            <div class="text-lg font-extrabold">$79</div>
+            <button data-service="Basic Oil Change" class="btn ring-focus px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-600">Book</button>
+          </div>
+        </div>
+        <!-- Full Synthetic -->
+        <div class="glass rounded-2xl p-6 flex flex-col border border-cyan-400/30">
+          <div class="flex items-center gap-3">
+            <div class="h-11 w-11 rounded-xl icon-circle flex items-center justify-center">
+              <svg viewBox="0 0 24 24" class="h-6 w-6 text-cyan-300"><path fill="currentColor" d="M7 4h10l3 5v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9l3-5zM6 9h12l-1.5-3h-9L6 9z"/></svg>
+            </div>
+            <div>
+              <div class="font-semibold">Full Synthetic</div>
+              <div class="text-white/60 text-sm -mt-0.5">Best performance & protection</div>
+            </div>
+          </div>
+          <ul class="mt-4 text-white/70 text-sm space-y-2">
+            <li>• Premium full synthetic oil</li>
+            <li>• OEM filter</li>
+            <li>• Tire pressure & fluids</li>
+          </ul>
+          <div class="mt-5 flex items-center justify-between">
+            <div class="text-lg font-extrabold">$109</div>
+            <button data-service="Full Synthetic" class="btn ring-focus px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-600">Book</button>
+          </div>
+        </div>
+        <!-- High Mileage -->
+        <div class="glass rounded-2xl p-6 flex flex-col">
+          <div class="flex items-center gap-3">
+            <div class="h-11 w-11 rounded-xl icon-circle flex items-center justify-center">
+              <svg viewBox="0 0 24 24" class="h-6 w-6 text-cyan-300"><path fill="currentColor" d="M3 7h18v2H3zm2 4h14v2H5zm3 4h8v2H8z"/></svg>
+            </div>
+            <div>
+              <div class="font-semibold">High Mileage</div>
+              <div class="text-white/60 text-sm -mt-0.5">For 75k+ miles</div>
+            </div>
+          </div>
+          <ul class="mt-4 text-white/70 text-sm space-y-2">
+            <li>• Seal-conditioning oil</li>
+            <li>• Filter replacement</li>
+            <li>• Inspection & top-ups</li>
+          </ul>
+          <div class="mt-5 flex items-center justify-between">
+            <div class="text-lg font-extrabold">$99</div>
+            <button data-service="High Mileage" class="btn ring-focus px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-600">Book</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing / Instant Quote -->
+  <section id="pricing" class="py-16 border-t border-white/10">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <h2 class="text-3xl sm:text-4xl font-extrabold">Instant Quote</h2>
+      <p class="mt-2 text-white/70">Get a quick estimate for your vehicle and oil type.</p>
+
+      <div class="mt-6 glass rounded-2xl p-6">
+        <div class="grid md:grid-cols-4 gap-4">
+          <div>
+            <label class="text-sm text-white/70">Vehicle</label>
+            <input id="qVehicle" type="text" placeholder="e.g. 2018 Toyota Camry" class="mt-1 w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:border-cyan-400/50" />
+          </div>
+          <div>
+            <label class="text-sm text-white/70">Oil Type</label>
+            <select id="qOil" class="mt-1 w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:border-cyan-400/50">
+              <option value="basic">Conventional / Blend</option>
+              <option value="synthetic">Full Synthetic</option>
+              <option value="high">High Mileage</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm text-white/70">ZIP Code</label>
+            <input id="qZip" type="text" maxlength="10" placeholder="e.g. 94016" class="mt-1 w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:border-cyan-400/50" />
+          </div>
+          <div class="flex items-end">
+            <button id="btnQuote" class="btn ring-focus w-full px-4 py-2.5 rounded-lg bg-sky-500 hover:bg-sky-600">Calculate</button>
+          </div>
+        </div>
+        <div id="quoteResult" class="mt-4 hidden">
+          <div class="flex items-center justify-between">
+            <div class="text-white/80">Estimated total</div>
+            <div id="quotePrice" class="text-2xl font-extrabold text-cyan-300">$0</div>
+          </div>
+          <div class="mt-3 text-xs text-white/50">Includes service, disposal, and standard filter. Final price confirmed at booking.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section id="how" class="py-16">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <h2 class="text-3xl sm:text-4xl font-extrabold">How it works</h2>
+      <div class="mt-8 grid md:grid-cols-3 gap-6">
+        <div class="glass rounded-2xl p-6">
+          <div class="h-12 w-12 rounded-xl icon-circle flex items-center justify-center">
+            <span class="text-xl">📅</span>
+          </div>
+          <div class="mt-4 font-semibold">1) Choose your time</div>
+          <div class="text-white/70 text-sm mt-1">Pick a day and time that suits you. We'll send a confirmation.</div>
+        </div>
+        <div class="glass rounded-2xl p-6">
+          <div class="h-12 w-12 rounded-xl icon-circle flex items-center justify-center">
+            <span class="text-xl">🚗</span>
+          </div>
+          <div class="mt-4 font-semibold">2) We come to you</div>
+          <div class="text-white/70 text-sm mt-1">A pro tech arrives with all tools, oil, and filters. No mess.</div>
+        </div>
+        <div class="glass rounded-2xl p-6">
+          <div class="h-12 w-12 rounded-xl icon-circle flex items-center justify-center">
+            <span class="text-xl">✅</span>
+          </div>
+          <div class="mt-4 font-semibold">3) Done in ~45 minutes</div>
+          <div class="text-white/70 text-sm mt-1">Payment and service summary provided upon completion.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Reviews -->
+  <section id="reviews" class="py-16 border-t border-white/10">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <div class="flex items-end justify-between">
+        <h2 class="text-3xl sm:text-4xl font-extrabold">Customer reviews</h2>
+        <div class="text-sm text-white/60">4.9 average • 500+ ratings</div>
+      </div>
+      <div class="mt-8 grid md:grid-cols-3 gap-6">
+        <div class="glass rounded-2xl p-6">
+          <div class="flex items-center gap-2 text-amber-300">★★★★★</div>
+          <div class="mt-3 text-white/80">They changed my oil at work during lunch. Super convenient and friendly!</div>
+          <div class="mt-4 text-sm text-white/50">— Jamie R.</div>
+        </div>
+        <div class="glass rounded-2xl p-6">
+          <div class="flex items-center gap-2 text-amber-300">★★★★★</div>
+          <div class="mt-3 text-white/80">On time, clean setup, and the price matched the quote. Highly recommend.</div>
+          <div class="mt-4 text-sm text-white/50">— Priya S.</div>
+        </div>
+        <div class="glass rounded-2xl p-6">
+          <div class="flex items-center gap-2 text-amber-300">★★★★★</div>
+          <div class="mt-3 text-white/80">Great communication and fast service. Will use again!</div>
+          <div class="mt-4 text-sm text-white/50">— Carlos M.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="py-16">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <h2 class="text-3xl sm:text-4xl font-extrabold">Frequently asked</h2>
+      <div class="mt-6 grid md:grid-cols-2 gap-6">
+        <details class="glass rounded-2xl p-5 group">
+          <summary class="cursor-pointer font-semibold list-none flex items-center justify-between">
+            What areas do you service?
+            <span class="text-white/50 group-open:rotate-180 transition">⌄</span>
+          </summary>
+          <div class="mt-3 text-white/70 text-sm">We currently serve within a 25-mile radius of downtown. Enter your ZIP in the quote tool to confirm.</div>
+        </details>
+        <details class="glass rounded-2xl p-5 group">
+          <summary class="cursor-pointer font-semibold list-none flex items-center justify-between">
+            Do I need to be present?
+            <span class="text-white/50 group-open:rotate-180 transition">⌄</span>
+          </summary>
+          <div class="mt-3 text-white/70 text-sm">Not necessarily. As long as we have access to the vehicle and keys if required.</div>
+        </details>
+        <details class="glass rounded-2xl p-5 group">
+          <summary class="cursor-pointer font-semibold list-none flex items-center justify-between">
+            How do you dispose of used oil?
+            <span class="text-white/50 group-open:rotate-180 transition">⌄</span>
+          </summary>
+          <div class="mt-3 text-white/70 text-sm">We follow EPA guidelines and recycle used oil through certified partners.</div>
+        </details>
+        <details class="glass rounded-2xl p-5 group">
+          <summary class="cursor-pointer font-semibold list-none flex items-center justify-between">
+            What forms of payment do you take?
+            <span class="text-white/50 group-open:rotate-180 transition">⌄</span>
+          </summary>
+          <div class="mt-3 text-white/70 text-sm">Cards and contactless payments are accepted after service completion.</div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- Booking Modal (Demo) -->
+  <div id="modal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/60"></div>
+    <div class="relative max-w-lg mx-auto mt-24 glass rounded-2xl p-6">
+      <div class="flex items-center justify-between">
+        <div class="text-xl font-bold">Book service</div>
+        <button id="modalClose" class="btn px-3 py-2 rounded-lg border border-white/15">Close</button>
+      </div>
+      <div class="mt-4 text-sm text-white/60">This is a demo booking form. It collects details locally and shows a confirmation — no data is sent anywhere.</div>
+
+      <form id="bookingForm" class="mt-5 grid grid-cols-1 gap-4">
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm text-white/70">Full name</label>
+            <input required name="name" type="text" placeholder="Your name" class="mt-1 w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:border-cyan-400/50" />
+          </div>
+          <div>
+            <label class="text-sm text-white/70">Phone</label>
+            <input required name="phone" type="tel" placeholder="(555) 000-0000" class="mt-1 w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:border-cyan-400/50" />
+          </div>
+        </div>
+        <div>
+          <label class="text-sm text-white/70">Email (optional)</label>
+          <input name="email" type="email" placeholder="you@example.com" class="mt-1 w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:border-cyan-400/50" />
+        </div>
+        <div>
+          <label class="text-sm text-white/70">Vehicle</label>
+          <input required name="vehicle" type="text" placeholder="e.g. 2018 Toyota Camry" class="mt-1 w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:border-cyan-400/50" />
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm text-white/70">Service</label>
+            <select required name="service" class="mt-1 w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:border-cyan-400/50">
+              <option value="">Select...</option>
+              <option>Basic Oil Change</option>
+              <option>Full Synthetic</option>
+              <option>High Mileage</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm text-white/70">Preferred date</label>
+            <input required name="date" type="date" class="mt-1 w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:border-cyan-400/50" />
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm text-white/70">Time window</label>
+            <select required name="time" class="mt-1 w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:border-cyan-400/50">
+              <option value="">Select...</option>
+              <option>8–10 AM</option>
+              <option>10–12 PM</option>
+              <option>12–2 PM</option>
+              <option>2–4 PM</option>
+              <option>4–6 PM</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm text-white/70">ZIP Code</label>
+            <input required name="zip" type="text" placeholder="e.g. 94016" class="mt-1 w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:border-cyan-400/50" />
+          </div>
+        </div>
+        <div>
+          <label class="text-sm text-white/70">Notes (optional)</label>
+          <textarea name="notes" rows="3" placeholder="Any special instructions..." class="mt-1 w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:border-cyan-400/50"></textarea>
+        </div>
+        <button class="btn ring-focus mt-2 px-5 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 text-white font-semibold">Request booking</button>
+        <div class="text-xs text-white/50 -mt-1">Sample/Demo only. For real bookings, connect this to your preferred scheduling tool.</div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden">
+    <div class="glass rounded-xl px-4 py-3 text-sm flex items-center gap-2 toast-enter">
+      <span id="toastMsg">Done!</span>
+      <button id="toastClose" class="ml-2 text-white/60 hover:text-white">✕</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-16 border-t border-white/10">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-10 grid md:grid-cols-4 gap-8">
+      <div>
+        <div class="flex items-center gap-2">
+          <div class="h-9 w-9 rounded-lg flex items-center justify-center bg-gradient-to-br from-sky-500 to-cyan-400">
+            <svg viewBox="0 0 24 24" class="h-5 w-5 text-white">
+              <path fill="currentColor" d="M12 2s5 6.01 5 9.5A5 5 0 1 1 7 11.5C7 8.01 12 2 12 2z"/>
+            </svg>
+          </div>
+          <div class="font-bold">RapidLube</div>
+        </div>
+        <p class="mt-3 text-sm text-white/60">Mobile oil changes across the metro area. Fast, professional, and on your schedule.</p>
+      </div>
+      <div>
+        <div class="font-semibold">Company</div>
+        <ul class="mt-3 space-y-2 text-white/70 text-sm">
+          <li><a href="#services" class="hover:text-white">Services</a></li>
+          <li><a href="#pricing" class="hover:text-white">Pricing</a></li>
+          <li><a href="#reviews" class="hover:text-white">Reviews</a></li>
+          <li><a href="#faq" class="hover:text-white">FAQ</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="font-semibold">Hours</div>
+        <ul class="mt-3 space-y-2 text-white/70 text-sm">
+          <li>Mon–Sat: 7am–7pm</li>
+          <li>Sun: Closed</li>
+        </ul>
+      </div>
+      <div>
+        <div class="font-semibold">Contact</div>
+        <ul class="mt-3 space-y-2 text-white/70 text-sm">
+          <li>Call: (555) 012-3456</li>
+          <li>Email: hello@rapidlube.demo</li>
+          <li>Service area: 25 miles radius</li>
+        </ul>
+        <button id="footerBook" class="btn ring-focus mt-4 w-full px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-600">Book now</button>
+      </div>
+    </div>
+    <div class="border-t border-white/10 py-4 text-center text-xs text-white/50">
+      © <span id="year"></span> RapidLube. All rights reserved.
+    </div>
+  </footer>
+
+  <script>
+    // Utility: show toast
+    function showToast(message){
+      const t = document.getElementById('toast');
+      const m = document.getElementById('toastMsg');
+      m.textContent = message;
+      t.classList.remove('hidden');
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(()=>{ t.classList.add('hidden'); }, 3000);
+    }
+    document.getElementById('toastClose').addEventListener('click', ()=> document.getElementById('toast').classList.add('hidden'));
+
+    // Mobile menu controls
+    const mobileMenu = document.getElementById('mobileMenu');
+    const sheet = mobileMenu.querySelector('.sheet');
+    function openSheet(){
+      mobileMenu.classList.remove('hidden');
+      requestAnimationFrame(()=> sheet.style.transform = 'translateY(0)');
+    }
+    function closeSheet(){
+      sheet.style.transform = 'translateY(100%)';
+      setTimeout(()=> mobileMenu.classList.add('hidden'), 250);
+    }
+    document.getElementById('btnMobile').addEventListener('click', openSheet);
+    document.getElementById('btnCloseSheet').addEventListener('click', closeSheet);
+    mobileMenu.addEventListener('click', (e)=>{ if(e.target === mobileMenu.firstElementChild) closeSheet(); });
+
+    // Booking modal controls
+    const modal = document.getElementById('modal');
+    function openModal(prefillService){
+      modal.classList.remove('hidden');
+      // prefill service if provided
+      if (prefillService){
+        const sel = modal.querySelector('select[name="service"]');
+        [...sel.options].forEach(o => o.selected = (o.textContent === prefillService));
+      }
+    }
+    function closeModal(){ modal.classList.add('hidden'); }
+    document.getElementById('modalClose').addEventListener('click', closeModal);
+
+    // CTA bindings
+    document.getElementById('btnBook').addEventListener('click', ()=> openModal());
+    document.getElementById('btnBookMobile').addEventListener('click', ()=> { closeSheet(); setTimeout(()=>openModal(), 200); });
+    document.getElementById('ctaBook').addEventListener('click', ()=> openModal());
+    document.getElementById('quickBook').addEventListener('click', ()=> openModal('Full Synthetic'));
+    document.getElementById('footerBook').addEventListener('click', ()=> openModal());
+    document.querySelectorAll('button[data-service]').forEach(btn=>{
+      btn.addEventListener('click', ()=> openModal(btn.getAttribute('data-service')));
+    });
+
+    // Call button: opens tel link
+    function callNow(){ window.location.href = 'tel:+15550123456'; }
+    document.getElementById('btnCall').addEventListener('click', callNow);
+
+    // Instant Quote logic (simple demo calculator)
+    const basePrices = { basic: 79, synthetic: 109, high: 99 };
+    document.getElementById('btnQuote').addEventListener('click', ()=>{
+      const oil = document.getElementById('qOil').value;
+      const zip = (document.getElementById('qZip').value || '').trim();
+      let price = basePrices[oil] || 89;
+
+      // Simple travel fee: +$10 if ZIP not provided or not 5 digits (demo only)
+      const travelFee = /^\d{5}$/.test(zip) ? 0 : 10;
+      price += travelFee;
+
+      const out = document.getElementById('quoteResult');
+      document.getElementById('quotePrice').textContent = `$${price}`;
+      out.classList.remove('hidden');
+
+      showToast(travelFee ? 'Estimated with travel fee' : 'Estimate ready');
+    });
+
+    // Compare packages
+    document.getElementById('btnCompare').addEventListener('click', ()=>{
+      const message = 'Basic: $79 • Full Synthetic: $109 • High Mileage: $99';
+      showToast(message);
+      // scroll to pricing for details
+      document.getElementById('pricing').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // Quote shortcut
+    document.getElementById('ctaQuote').addEventListener('click', ()=>{
+      document.getElementById('pricing').scrollIntoView({ behavior: 'smooth' });
+      showToast('Scroll to instant quote');
+    });
+
+    // Demo booking submission (no external sending)
+    document.getElementById('bookingForm').addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target).entries());
+      closeModal();
+      showToast('Thanks! We will confirm your requested time shortly.');
+      // Optionally log to console for demo
+      console.log('Demo booking submitted:', data);
+      e.target.reset();
+    });
+
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9811d40276cdc365',t:'MTc1ODIwODgzNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
